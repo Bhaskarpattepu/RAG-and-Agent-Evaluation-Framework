@@ -67,7 +67,6 @@ jobs:
           github.event.pull_request.head.repo.full_name == github.repository }}
 
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
       EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL || 'text-embedding-3-small' }}
       CHROMA_PATH: ./data/chroma
@@ -89,6 +88,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Validate OpenAI secret
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          clean_key="$(printf '%s' "$OPENAI_API_KEY" | tr -d '[:space:]')"
+          if [ -z "$clean_key" ]; then
+            echo "::error::OPENAI_API_KEY is missing or empty after whitespace cleanup."
+            exit 1
+          fi
+          echo "::add-mask::$clean_key"
+          printf 'OPENAI_API_KEY=%s\n' "$clean_key" >> "$GITHUB_ENV"
 
       - name: Create report directory
         run: mkdir -p reports
