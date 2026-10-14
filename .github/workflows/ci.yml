@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      OPENAI_API_KEY: ci-placeholder-not-a-real-key
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
       EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL || 'text-embedding-3-small' }}
       CHROMA_PATH: ${{ vars.CHROMA_PATH || './data/chroma' }}
@@ -70,6 +69,14 @@ jobs:
           fi
           echo "OpenAI endpoint reachable (HTTP $status; 401 is expected without credentials)."
       - name: Run live agent tests
-        run: >-
-          python -m pytest -q tests/test_agent_tools.py
-          -k "test_agent_selects_ticket_tool or test_agent_selects_retrieval_tool"
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          clean_key="$(printf '%s' "$OPENAI_API_KEY" | tr -d '[:space:]')"
+          if [ -z "$clean_key" ]; then
+            echo "::error::OPENAI_API_KEY is empty after whitespace cleanup.";
+            exit 1
+          fi
+          export OPENAI_API_KEY="$clean_key"
+          python -m pytest -q tests/test_agent_tools.py \
+            -k "test_agent_selects_ticket_tool or test_agent_selects_retrieval_tool"
