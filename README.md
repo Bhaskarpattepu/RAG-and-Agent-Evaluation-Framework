@@ -29,11 +29,12 @@ Use POST `/ingest` with `{"filename":"refund_policy.txt"}` for files already pre
 
 ## Tests
 ```bash
-python -m pytest -q tests/                 # deterministic tests, no API key needed
+python -m pytest -q tests/ -k "not test_agent_selects_ticket_tool and not test_agent_selects_retrieval_tool"  # offline tests
+python -m pytest -q tests/test_agent_tools.py -k "test_agent_selects_ticket_tool or test_agent_selects_retrieval_tool"  # live OpenAI tests
 python -m scripts.evaluate_agent           # live agent tool/source check
 python -m scripts.run_evaluation           # DeepEval semantic evaluations, requires API key
 ```
-For live tests, ingest demo documents first. LangSmith tracing is automatically enabled when the environment variables are set. Inspect traces in your configured LangSmith project.
+The live OpenAI tests and evaluation scripts require `OPENAI_API_KEY` and may incur API charges. The CI workflow runs offline tests and a Docker build first, then requires `OPENAI_API_KEY` to run live agent tests on pushes and same-repository pull requests; it fails fast if the secret is missing. Fork pull requests run only the offline checks. LangSmith tracing is enabled only when the corresponding environment variable is set.
 
 ## Docker
 ```bash

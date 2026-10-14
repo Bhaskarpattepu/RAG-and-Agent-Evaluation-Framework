@@ -96,18 +96,27 @@ Rules:
 """
 
 
-# 4. Create LLM with tools
-llm = ChatOpenAI(
-    model=settings.openai_model,
-    temperature=0,
-    timeout=45,
-    max_retries=4,
-).bind_tools(TOOLS)
+# 4. Create LLM on first use so importing the app does not require API credentials.
+llm = None
+
+
+def get_llm():
+    global llm
+
+    if llm is None:
+        llm = ChatOpenAI(
+            model=settings.openai_model,
+            temperature=0,
+            timeout=45,
+            max_retries=4,
+        ).bind_tools(TOOLS)
+
+    return llm
 
 
 # 5. Agent node
 def call_model(state: AgentState):
-    response = llm.invoke(
+    response = get_llm().invoke(
         [
             SystemMessage(content=SYSTEM_PROMPT),
             *state["messages"],
