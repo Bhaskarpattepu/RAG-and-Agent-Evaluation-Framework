@@ -42,7 +42,8 @@ jobs:
       - name: Run unit tests
         run: |
           mkdir -p reports
-          python -m pytest tests/unit/ -v \
+          python -m pytest tests/ -v \
+            -k "not test_agent_selects_ticket_tool and not test_agent_selects_retrieval_tool" \
             --junitxml=reports/unit-results.xml
 
       - name: Upload unit test results
@@ -60,8 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    # Secrets available only to trusted runs
-    if: github.event_name != 'pull_request'
+    # Live tests need secrets, so skip only fork pull requests.
+    if: >-
+        ${{ github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository }}
 
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
