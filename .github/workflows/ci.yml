@@ -8,15 +8,15 @@ permissions:
   contents: read
 
 jobs:
-  deterministic-tests:
+  tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     env:
       OPENAI_API_KEY: "just-a-placeholder"
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
       EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL || 'text-embedding-3-small' }}
       CHROMA_PATH: ${{ vars.CHROMA_PATH || './data/chroma' }}
-      LANGSMITH_TRACING: ${{ vars.LANGSMITH_TRACING || 'false' }}
+      LANGSMITH_TRACING: 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,38 +29,18 @@ jobs:
         run: >-
           python -m pytest -q tests/
           -k "not test_agent_selects_ticket_tool and not test_agent_selects_retrieval_tool"
-
-  live-agent-tests:
-    if: >-
-      ${{ github.event_name != 'pull_request' ||
-          github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
-      OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
-      EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL || 'text-embedding-3-small' }}
-      CHROMA_PATH: ${{ vars.CHROMA_PATH || './data/chroma' }}
-      LANGSMITH_TRACING: ${{ vars.LANGSMITH_TRACING || 'false' }}
-      LANGSMITH_PROJECT: ${{ vars.LANGSMITH_PROJECT || 'rag-agent-ci' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: pip
-          cache-dependency-path: requirements.txt
       - name: Verify OpenAI secret is configured
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          if [ -z "$OPENAI_API_KEY" ]; then
+          clean_key="$(printf '%s' "$OPENAI_API_KEY" | tr -d '[:space:]')"
+          if [ -z "$clean_key" ]; then
             echo "::error::Configure OPENAI_API_KEY in repository Actions secrets."
             exit 1
           fi
-      - run: pip install -r requirements.txt
       - name: Check OpenAI API connectivity
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           status=$(curl -sS -o /dev/null --connect-timeout 15 --max-time 30 \
             -w '%{http_code}' https://api.openai.com/v1/models || true)
@@ -70,8 +50,12 @@ jobs:
           fi
           echo "OpenAI endpoint reachable (HTTP $status; 401 is expected without credentials)."
       - name: Run live agent tests
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+          LANGSMITH_TRACING: ${{ vars.LANGSMITH_TRACING || 'false' }}
+          LANGSMITH_PROJECT: ${{ vars.LANGSMITH_PROJECT || 'rag-agent-ci' }}
         run: |
           clean_key="$(printf '%s' "$OPENAI_API_KEY" | tr -d '[:space:]')"
           if [ -z "$clean_key" ]; then
