@@ -1,0 +1,17 @@
+{
+  "TKT-1001": {
+    "status": "OPEN",
+    "issue": "Refund request",
+    "customer": "Demo Customer"
+  },
+  "TKT-1002": {
+    "status": "RESOLVED",
+    "issue": "Payment failure",
+    "customer": "Demo Customer"
+  },
+  "TKT-1003": {
+    "status": "IN_PROGRESS",
+    "issue": "Delayed refund",
+    "customer": "Demo Customer"
+  }
+}

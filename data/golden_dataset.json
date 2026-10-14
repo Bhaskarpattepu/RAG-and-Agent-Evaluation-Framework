@@ -1,0 +1,5 @@
+[
+  {"input":"How many days do I have to request a refund?","expected_output":"Customers may request a refund within 30 calendar days of purchase with proof of purchase.","expected_source":"refund_policy.txt"},
+  {"input":"Are digital gift cards refundable?","expected_output":"Digital gift cards are not refundable.","expected_source":"refund_policy.txt"},
+  {"input":"How long does an approved refund take?","expected_output":"Refunds return to the original payment method within 5 to 10 business days after approval.","expected_source":"refund_policy.txt"}
+]

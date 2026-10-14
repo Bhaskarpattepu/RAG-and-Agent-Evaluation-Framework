@@ -1,0 +1,26 @@
+
+[
+  {
+    "question": "Are digital gift cards refundable?",
+    "expected_tools": ["search_knowledge_base"]
+  },
+  {
+    "question": "Check status of ticket TKT-1001",
+    "expected_tools": ["get_ticket_status"]
+  },
+  {
+    "question": "Calculate a hypothetical refund of 2000 with a 10 percent deduction",
+    "expected_tools": ["calculate_refund"]
+  },
+  {
+    "question": "Prepare a support ticket draft about my delayed refund",
+    "expected_tools": ["draft_support_ticket"]
+  },
+  {
+    "question": "What is the refund policy and status of ticket TKT-1003?",
+    "expected_tools": [
+      "search_knowledge_base",
+      "get_ticket_status"
+    ]
+  }
+]
