@@ -17,7 +17,6 @@ jobs:
       EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL || 'text-embedding-3-small' }}
       CHROMA_PATH: ${{ vars.CHROMA_PATH || './data/chroma' }}
       LANGSMITH_TRACING: ${{ vars.LANGSMITH_TRACING || 'false' }}
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,6 +60,15 @@ jobs:
             exit 1
           fi
       - run: pip install -r requirements.txt
+      - name: Check OpenAI API connectivity
+        run: |
+          status=$(curl -sS -o /dev/null --connect-timeout 15 --max-time 30 \
+            -w '%{http_code}' https://api.openai.com/v1/models || true)
+          if [ "$status" = "000" ]; then
+            echo "::error::GitHub runner could not connect to api.openai.com."
+            exit 1
+          fi
+          echo "OpenAI endpoint reachable (HTTP $status; 401 is expected without credentials)."
       - name: Run live agent tests
         run: >-
           python -m pytest -q tests/test_agent_tools.py

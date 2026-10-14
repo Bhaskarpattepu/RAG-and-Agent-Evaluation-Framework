@@ -100,6 +100,8 @@ Rules:
 llm = ChatOpenAI(
     model=settings.openai_model,
     temperature=0,
+    timeout=45,
+    max_retries=4,
 ).bind_tools(TOOLS)
 
 
