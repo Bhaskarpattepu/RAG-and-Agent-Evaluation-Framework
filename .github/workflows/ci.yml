@@ -104,6 +104,9 @@ jobs:
       - name: Create report directory
         run: mkdir -p reports
 
+      - name: Ingest demo policy for retrieval test
+        run: python -m scripts.ingest_demo
+
       - name: Run LangGraph agent tests
         run: |
           python -m pytest \
